@@ -7,20 +7,20 @@ if os.path.exists("env.py"):
     import env
 
 
-client = commands.Bot(command_prefix = '!')
+inconnu = commands.Bot(command_prefix = '!')
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-@client.event
+@inconnu.event
 async def on_ready():
     print('The bot is now ready for use!')
 
 
-@client.command()
+@inconnu.command()
 async def hello(ctx):
     await ctx.send("Hello, I am Inconnu")
 
 
-@client.command()
+@inconnu.command()
 async def roll(ctx, quantity, hunger):
   try:
     dice_pool = []
@@ -41,4 +41,4 @@ async def roll(ctx, quantity, hunger):
     await ctx.send("Idiot. !roll 'integer' with integer being your dice pool.")
 
 
-client.run(TOKEN) 
+inconnu.run(TOKEN) 
