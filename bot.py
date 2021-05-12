@@ -21,15 +21,24 @@ async def hello(ctx):
 
 
 @client.command()
-async def roll(ctx, quantity):
+async def roll(ctx, quantity, hunger):
   try:
     dice_pool = []
-    for number in range(int(quantity)):
+    hunger_pool = []
+    for number in range(int(quantity)-int(hunger)):
        dice_pool.append(random.randint(1, 10))
+    for number in range(int(hunger)):
+       hunger_pool.append(random.randint(1, 10))
     results = ", ".join(str(number) for number in dice_pool)
-    success = str(sum(number>5 for number in dice_pool))
-    await ctx.send("Number of successes:" + success + "```" + results + "```")
+    hunger_results = ", ".join(str(number) for number in hunger_pool)
+    success = str(sum(number>5 for number in dice_pool)+sum(number>5 for number in hunger_pool))
+    embed = discord.Embed(description="Dice Pool:" + " " + str(quantity), color=0xCA0303)
+    embed.set_author(name=ctx.author.display_name + "'s roll", icon_url=ctx.author.avatar_url)
+    embed.add_field(name="Number of successes:" + " " + success, value = results, inline=True)
+    embed.add_field(name="Hunger", value = hunger_results, inline=True)
+    await ctx.send(embed=embed)
   except Exception as x:
     await ctx.send("Idiot. !roll 'integer' with integer being your dice pool.")
 
-client.run(TOKEN)
+
+client.run(TOKEN) 
