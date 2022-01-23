@@ -2,17 +2,21 @@ import os
 
 import discord
 import random
+from pymongo import MongoClient
 from discord.ext import commands
 if os.path.exists("env.py"):
     import env
 
 
 inconnu = commands.Bot(command_prefix = '!')
+MongoDB = os.getenv("MONGO")
+mongo = MongoClient(MongoDB)
 TOKEN = os.getenv('DISCORD_TOKEN')
 
 @inconnu.event
 async def on_ready():
     print('The bot is now ready for use!')
+
 
 
 @inconnu.command()
@@ -21,7 +25,7 @@ async def hello(ctx):
 
 
 @inconnu.command()
-async def roll(ctx, quantity, hunger):
+async def roll(ctx, quantity, hunger=""):
   try:
     dice_pool = []
     hunger_pool = []
@@ -40,15 +44,16 @@ async def roll(ctx, quantity, hunger):
   except Exception as x:
     await ctx.send("Idiot. !roll 'integer' with integer being your dice pool.")
 
+
 @inconnu.command()
 async def hp(ctx, mod, quantity, type):
   try:
-    hp_total = [None] * int(quantity)
-    print(hp_total)
-    
-    await ctx.send(hp_total)
+    user = {ctx.message.author.id}
+    if mod == "set":
+      hp_total = [None] * int(quantity)
+      await ctx.send(hp_total)
   except Exception as x:
     await ctx.send ("Try !help for how to write the commands. Idiot.")
-
+    
 
 inconnu.run(TOKEN) 
