@@ -40,5 +40,15 @@ async def roll(ctx, quantity, hunger):
   except Exception as x:
     await ctx.send("Idiot. !roll 'integer' with integer being your dice pool.")
 
+@inconnu.command()
+async def hp(ctx, mod, quantity, type):
+  try:
+    hp_total = [None] * int(quantity)
+    print(hp_total)
+    
+    await ctx.send(hp_total)
+  except Exception as x:
+    await ctx.send ("Try !help for how to write the commands. Idiot.")
+
 
 inconnu.run(TOKEN) 
