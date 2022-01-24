@@ -48,12 +48,31 @@ async def roll(ctx, quantity, hunger=""):
 @inconnu.command()
 async def hp(ctx, mod, quantity, type):
   try:
-    user = {ctx.message.author.id}
-    if mod == "set":
-      hp_total = [None] * int(quantity)
-      await ctx.send(hp_total)
+    user = ctx.message.author.id
+    record = mongo.stats.track.find_one({"user": user})
+    if record != None:
+      if mod == "set":
+        hp_total = [None] * int(quantity)
+        mongo.stats.track.replace_one({"user": user}, {"total HP": hp_total})
+        await ctx.send(hp_total)
+      elif mod == "dam":
+        hp_total = [None] * int(quantity)
+        await ctx.send(user)
+      elif mod == "heal":
+        hp_total = [None] * int(quantity)
+        await ctx.send(hp_total)
+      else:
+        await ctx.send ("Try '!hp help' for how to write the commands.")
+    else:
+      if mod == "set":
+        hp_total = [None] * int(quantity)
+        post = {"user": user, "total HP": hp_total}
+        mongo.stats.track.insert_one(post)
+        await ctx.send(post)
+      else: 
+        await ctx.send("You need to set your hp first")
   except Exception as x:
-    await ctx.send ("Try !help for how to write the commands. Idiot.")
+    await ctx.send ("You've made a mistake there. Have a think.")
     
 
 inconnu.run(TOKEN) 
