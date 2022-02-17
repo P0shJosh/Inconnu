@@ -44,9 +44,31 @@ async def roll(ctx, quantity, hunger=""):
   except Exception as x:
     await ctx.send("Idiot. !roll 'integer' with integer being your dice pool.")
 
-
 @inconnu.command()
-async def hp(ctx, mod, quantity, type):
+async def set(ctx, type, quantity):
+  try:
+    user = ctx.message.author.id
+    record = mongo.stats.track.find_one({"user": user})
+    if (type == "hp"):
+      hp_total = [0] * int(quantity)
+      if record == None:
+        mongo.stats.track.insert_one({"user": user}, {"total HP": hp_total})
+      else:
+        mongo.stats.track.update_one({"user": user}, {"$set": {"total HP": hp_total}})
+      await ctx.send(hp_total)
+    if (type == "wp"):
+      wp_total = [0] * int(quantity)
+      if record == None:
+        mongo.stats.track.insert_one({"user": user}, {"total WP": wp_total})
+      else:
+        mongo.stats.track.update_one({"user": user}, {"$set": {"total WP": wp_total}})
+      await ctx.send(wp_total)
+  except Exception as x:
+    await ctx.send ("You've made a mistake there. Have a think.")
+      
+      
+@inconnu.command()
+async def hp(ctx, mod, quantity):
   try:
     user = ctx.message.author.id
     record = mongo.stats.track.find_one({"user": user})
@@ -54,8 +76,7 @@ async def hp(ctx, mod, quantity, type):
       if mod == "set":
         hp_total = [None] * int(quantity)
         mongo.stats.track.replace_one({"user": user}, {"total HP": hp_total})
-        await ctx.send(hp_total)
-      elif mod == "dam":
+      if mod == "dam":
         hp_total = [None] * int(quantity)
         await ctx.send(user)
       elif mod == "heal":
