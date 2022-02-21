@@ -1,8 +1,10 @@
+from ast import Num
 import os
 
 import discord
 import random
 from pymongo import MongoClient
+from itertools import count, filterfalse
 from discord.ext import commands
 if os.path.exists("env.py"):
     import env
@@ -16,7 +18,6 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 @inconnu.event
 async def on_ready():
     print('The bot is now ready for use!')
-
 
 
 @inconnu.command()
@@ -50,48 +51,50 @@ async def set(ctx, type, quantity):
     user = ctx.message.author.id
     record = mongo.stats.track.find_one({"user": user})
     if (type == "hp"):
-      hp_total = [0] * int(quantity)
+      hp_total = ["0"] * int(quantity)
       if record == None:
-        mongo.stats.track.insert_one({"user": user}, {"total HP": hp_total})
+        mongo.stats.track.insert_one({"user": user}, {"HP": hp_total})
       else:
-        mongo.stats.track.update_one({"user": user}, {"$set": {"total HP": hp_total}})
+        mongo.stats.track.update_one({"user": user}, {"$set": {"HP": hp_total}})
       await ctx.send(hp_total)
     if (type == "wp"):
       wp_total = [0] * int(quantity)
       if record == None:
-        mongo.stats.track.insert_one({"user": user}, {"total WP": wp_total})
+        mongo.stats.track.insert_one({"user": user}, {"WP": wp_total})
       else:
-        mongo.stats.track.update_one({"user": user}, {"$set": {"total WP": wp_total}})
+        mongo.stats.track.update_one({"user": user}, {"$set": {"WP": wp_total}})
       await ctx.send(wp_total)
   except Exception as x:
     await ctx.send ("You've made a mistake there. Have a think.")
       
       
 @inconnu.command()
-async def hp(ctx, mod, quantity):
+async def hp(ctx, quantity, type):
   try:
     user = ctx.message.author.id
-    record = mongo.stats.track.find_one({"user": user})
-    if record != None:
-      if mod == "set":
-        hp_total = [None] * int(quantity)
-        mongo.stats.track.replace_one({"user": user}, {"total HP": hp_total})
-      if mod == "dam":
-        hp_total = [None] * int(quantity)
-        await ctx.send(user)
-      elif mod == "heal":
-        hp_total = [None] * int(quantity)
-        await ctx.send(hp_total)
-      else:
-        await ctx.send ("Try '!hp help' for how to write the commands.")
+    record = mongo.stats.track.find_one({"user": user}, {"HP"})
+    if (mongo.stats.track.find_one({"user": user}) == None):
+      await ctx.send("You need to set your health limit first. Try '!set hp x' where x is your stamina + 3")
     else:
-      if mod == "set":
-        hp_total = [None] * int(quantity)
-        post = {"user": user, "total HP": hp_total}
-        mongo.stats.track.insert_one(post)
-        await ctx.send(post)
-      else: 
-        await ctx.send("You need to set your hp first")
+      if(type == "s"):
+        currentHealth = record.pop("HP")
+        currentHealth.sort()
+        i = 0
+        while i < int(quantity):
+          if(currentHealth[i] == "0"):
+            currentHealth[i] = "1"
+          elif(currentHealth[i] == "1"):
+            currentHealth[i] = "2"
+          else:
+            await ctx.send("No more for you, you enter torpor.")
+            break
+          i += 1
+        currentHealth.sort(reverse=True)
+        print(currentHealth)
+        mongo.stats.track.update_one({"user": user}, {"$set": {"HP": currentHealth}})
+        embed = discord.Embed(description="Current Health: " + "   ".join(currentHealth), color=0xCA0303)
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+        await ctx.send(embed=embed)
   except Exception as x:
     await ctx.send ("You've made a mistake there. Have a think.")
     
