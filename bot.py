@@ -38,7 +38,7 @@ async def roll(ctx, quantity, hunger=""):
     results = ", ".join(str(number) for number in dice_pool)
     hunger_results = ", ".join(str(number) for number in hunger_pool)
     success = str(sum(number>5 for number in dice_pool)+sum(number>5 for number in hunger_pool))
-    embed = discord.Embed(description="Dice Pool:" + " " + str(quantity), color=0xCA0303)
+    embed = discord.Embed(description="Dice Pool:" + " " + str(quantity), color=0xb233ff)
     embed.set_author(name=ctx.author.display_name + "'s roll", icon_url=ctx.author.avatar_url)
     embed.add_field(name="Number of successes:" + " " + success, value = results, inline=True)
     embed.add_field(name="Hunger", value = hunger_results, inline=True)
@@ -58,25 +58,39 @@ async def set(ctx, type, quantity):
         mongo.stats.track.insert_one({"user": user}, {"HP": hp_total})
       else:
         mongo.stats.track.update_one({"user": user}, {"$set": {"HP": hp_total}})
-      await ctx.send(hp_total)
+      x = 0
+      while x < len(hp_total):
+        hp_total[x] = "☐"
+        x += 1
+      embed = discord.Embed(description="**Current Health**: " + "   ".join(hp_total), color=0xCA0303)
+      embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+      await ctx.send(embed=embed)
     if (type == "wp"):
       wp_total = ["0"] * int(quantity)
       if record == None:
         mongo.stats.track.insert_one({"user": user}, {"WP": wp_total})
       else:
         mongo.stats.track.update_one({"user": user}, {"$set": {"WP": wp_total}})
-      await ctx.send(wp_total)
+      x = 0
+      while x < len(wp_total):
+        wp_total[x] = "☐"
+        x += 1
+      embed = discord.Embed(description="**Current Will**: " + "   ".join(wp_total), color=0x33fffc)
+      embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
+      await ctx.send(embed=embed)
   except Exception as x:
     await ctx.send ("You've made a mistake there. Have a think.")
 
 
 @inconnu.command()
-async def hp(ctx, quantity, type):
+async def hp(ctx, quantity=None, type=None):
   try:
     user = ctx.message.author.id
     record = mongo.stats.track.find_one({"user": user}, {"HP"})
     if (mongo.stats.track.find_one({"user": user}) == None):
       await ctx.send("You need to set your health limit first. Try '!set hp x' where x is your stamina + 3")
+    elif((quantity is None) and (type is None)):
+      currentHealth = record.pop("HP")
     else:
       currentHealth = record.pop("HP")
       currentHealth.sort()
@@ -126,12 +140,14 @@ async def hp(ctx, quantity, type):
 
       
 @inconnu.command()
-async def wp(ctx, quantity, type):
+async def wp(ctx, quantity=None, type=None):
   try:
     user = ctx.message.author.id
     record = mongo.stats.track.find_one({"user": user}, {"WP"})
     if (mongo.stats.track.find_one({"user": user}) == None):
       await ctx.send("You need to set your will limit first. Try '!set wp x' where x is your resolve + con")
+    elif((quantity is None) and (type is None)):
+      currentWill = record.pop("WP")
     else:
       currentWill = record.pop("WP")
       currentWill.sort()
@@ -173,7 +189,7 @@ async def wp(ctx, quantity, type):
       elif(currentWill[x] == "2"):
         currentWill[x] = "☒"
       x += 1
-    embed = discord.Embed(description="**Current Will**: " + "   ".join(currentWill), color=0xCA0303)
+    embed = discord.Embed(description="**Current Will**: " + "   ".join(currentWill), color=0x33fffc)
     embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar_url)
     await ctx.send(embed=embed)
   except Exception as x:
